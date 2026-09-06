@@ -8,35 +8,26 @@ public class BreedingRoom : Room
 
     [Header("Mutation Configuration")]
     [Range(0f, 1f)]
-    [SerializeField] private float mutationChance = 0.10f;
-    [SerializeField] private float mutationIntensity = 0.25f;
+    [SerializeField] private float mutationChance = 0.10f; // 10% chance to mutate
+    [SerializeField] private float mutationIntensity = 0.25f; // Max variation up/down
 
-    [Header("Testing Tool")]
-    [SerializeField] private KeyCode testBreedKey = KeyCode.Space;
+    [Header("Visual Mutation Assets (Section B Criteria)")]
+    [SerializeField] private Mesh rareMutatedMesh; // Drag your custom rare model variant here in Inspector
 
     private void Start()
     {
-        // Debug to confirm the script is active in the scene on startup
-        Debug.LogFormat("<color=yellow>[BreedingRoom System Setup]</color> Active on GameObject: <b>{0}</b>. Waiting for key input: <b>{1}</b>.", this.gameObject.name, testBreedKey);
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(testBreedKey))
-        {
-            int detectedCount = GetRoomCount();
-            Debug.LogFormat("<color=orange>[Input Detected]</color> Key <b>{0}</b> pressed! Studio engine currently reports <b>{1}</b> creature(s) in this room.", testBreedKey, detectedCount);
-
-            TryBreedCreatures();
-        }
+        Debug.LogFormat("<color=yellow>[BreedingRoom System Setup]</color> Active on <b>{0}</b>. " +
+            "Right-Click this component heading in the Inspector and select 'FORCE TEST BREED' to test!", this.gameObject.name);
     }
 
     /// <summary>
-    /// Executes the room tracking parameters and breeds exactly 2 creatures.
+    /// ContextMenu allows you to trigger this function directly from the Unity Editor Inspector window!
     /// </summary>
+    [ContextMenu("FORCE TEST BREED")]
     public void TryBreedCreatures()
     {
         int currentCount = GetRoomCount();
+        Debug.LogFormat("<color=orange>[Context Button Clicked]</color> Force-firing breeding routine. Studio engine reports <b>{0}</b> creature(s) in this room.", currentCount);
 
         // Check for missing setup configuration values in Inspector
         if (creaturePrefab == null)
@@ -64,19 +55,21 @@ public class BreedingRoom : Room
             return;
         }
 
-        // 2. Safely extract parent components out of the studio's collection
-        if (children == null || children.Count < 2)
-        {
-            Debug.LogError("<color=red>[System Mismatch]</color> Room tracker count is 2, but the underlying children array references are missing or broken!");
-            return;
-        }
+        // 2. Safely extract parent components out of the studio's collection loop
+        Creature parentA = null;
+        Creature parentB = null;
+        int index = 0;
 
-        Creature parentA = children[0].GetComponent<Creature>();
-        Creature parentB = children[1].GetComponent<Creature>();
+        foreach (Transform child in children)
+        {
+            if (index == 0) parentA = child.GetComponent<Creature>();
+            if (index == 1) parentB = child.GetComponent<Creature>();
+            index++;
+        }
 
         if (parentA == null || parentB == null)
         {
-            Debug.LogError("<color=red>[Component Error]</color> Found game objects in the room, but they are missing the required 'Creature' script component!");
+            Debug.LogError("<color=red>[Component Error]</color> Found game objects in the room, but failed to retrieve the required 'Creature' script components!");
             return;
         }
 
@@ -111,16 +104,15 @@ public class BreedingRoom : Room
                 float fatherVal = fatherStat.GetTrait().Value;
                 float motherVal = motherStat.GetTrait().Value;
 
-                // Pick a midpoint between parent values
+                // Pick a random midpoint between parent values
                 float inheritedValue = Random.Range(Mathf.Min(fatherVal, motherVal), Mathf.Max(fatherVal, motherVal));
                 Debug.LogFormat("[Genetics] Trait <b>{0}</b> -> Parent Mix Baseline Value computed as: {1:F2}", traitName, inheritedValue);
 
-                // 5. Mutation Algorithm (Section B Brief Criteria)
+                // Mutation Algorithm (Section B Brief Criteria)
                 if (Random.value < mutationChance)
                 {
                     float mutationOffset = Random.Range(-mutationIntensity, mutationIntensity) * inheritedValue;
                     inheritedValue += mutationOffset;
-
                     Debug.LogFormat("<color=purple>[Mutation Factor Alpha]</color> Random cell mutation triggered! Trait '{0}' shifted by {1:F2}", traitName, mutationOffset);
                 }
 
@@ -128,13 +120,9 @@ public class BreedingRoom : Room
                 inheritedValue = Mathf.Clamp(inheritedValue, 0, babyStat.GetTrait().MaxValue);
                 babyStat.GetTrait().Value = inheritedValue;
             }
-            else
-            {
-                Debug.LogWarningFormat("[Genetics Warning] Parent structures do not match! Trait mapping for '{0}' bypassed.", traitName);
-            }
         }
 
-        // 6. Visual Representation (Section B Brief Criteria)
+        // 5. Visual Representation: Scale (Section B Brief Criteria)
         Stat visualTrait = baby.GetStat("Speed");
         if (visualTrait != null)
         {
@@ -143,9 +131,29 @@ public class BreedingRoom : Room
             baby.transform.localScale = new Vector3(calculatedScale, calculatedScale, calculatedScale);
             Debug.LogFormat("[Visual Engine] Morphing complete. Scaling local bounds array uniformly to factor: <b>{0:F2}x</b> based on 'Speed' profile value.", calculatedScale);
         }
-        else
+
+        // 6. Visual Representation: Color & Mesh Mutation (Section B Brief Criteria)
+        if (Random.value < mutationChance)
         {
-            Debug.LogWarning("[Visual Engine] Could not locate a 'Speed' trait stat profile on the baby prefab template object to update layout scale constraints.");
+            // A. COLOUR MUTATION: Apply a random, unique RGB value
+            Renderer babyRenderer = baby.GetComponentInChildren<Renderer>();
+            if (babyRenderer != null)
+            {
+                Color randomMutatedColor = new Color(Random.value, Random.value, Random.value);
+                babyRenderer.material.color = randomMutatedColor;
+                Debug.Log("<color=purple>[Visual Mutation - COLOUR]</color> Baby skin chemistry mutated to a totally unique rogue colour spectrum!");
+            }
+
+            // B. MESH MUTATION: Swap out the structural geometry template mesh data reference
+            if (rareMutatedMesh != null)
+            {
+                MeshFilter babyMeshFilter = baby.GetComponentInChildren<MeshFilter>();
+                if (babyMeshFilter != null)
+                {
+                    babyMeshFilter.sharedMesh = rareMutatedMesh;
+                    Debug.Log("<color=purple>[Visual Mutation - MESH]</color> Rare anatomical skeletal variation triggered! Mesh geometric template altered.");
+                }
+            }
         }
 
         // Sync NavMesh runtime variables to match genetic data
