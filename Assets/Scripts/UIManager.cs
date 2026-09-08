@@ -26,10 +26,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (GameManager.Instance.GetSelectedCreature() != null)
+        if (GameManager.Instance != null && GameManager.Instance.GetSelectedCreature() != null)
         {
             displayPanel.SetActive(true);
         }
@@ -39,7 +38,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         DisplayInfo();
@@ -53,8 +51,10 @@ public class UIManager : MonoBehaviour
             {
                 displayPanel.SetActive(true);
                 displayName.text = currentlySelected.GetComponent<Creature>().GetName();
+
                 string formattedInfo = "";
                 List<Stat> selectedCreatureStats = currentlySelected.GetComponent<Creature>().GetStats();
+
                 foreach (Stat stat in selectedCreatureStats)
                 {
                     formattedInfo += stat.ToString();
@@ -66,18 +66,12 @@ public class UIManager : MonoBehaviour
             {
                 displayPanel.SetActive(true);
                 displayName.text = currentlySelected.GetComponent<Room>().GetRoomName();
-                string formattedInfo = "";
                 displayText.text = currentlySelected.GetComponent<Room>().ToString();
             }
             else
             {
-                displayPanel.SetActive(false);
-                displayName.text = "";
-                displayText.text = "";
-                currentlySelected = null;
+                ClearDisplay();
             }
-            
-            
         }
         else
         {
@@ -85,12 +79,30 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void ClearDisplay()
+    {
+        displayPanel.SetActive(false);
+        displayName.text = "";
+        displayText.text = "";
+        currentlySelected = null;
+    }
+
+    /// <summary>
+    /// Instantiates an on-screen warning banner alert for layout feedback.
+    /// Accessible globally via UIManager.Instance.DisplayWarningMessage("Your Text");
+    /// </summary>
     public void DisplayWarningMessage(string warningMessage)
     {
+        if (warningPrefab == null || warningPanel == null) return;
+
         GameObject warningGameObject = Instantiate(warningPrefab, warningPanel.transform);
-        warningGameObject.transform.SetParent(warningPanel.transform);
         TextMeshProUGUI warningText = warningGameObject.GetComponentInChildren<TextMeshProUGUI>();
-        warningText.text = warningMessage;
+
+        if (warningText != null)
+        {
+            warningText.text = warningMessage;
+        }
+
         Destroy(warningGameObject, 3f);
     }
 

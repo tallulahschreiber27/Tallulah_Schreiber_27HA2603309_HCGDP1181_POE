@@ -6,10 +6,9 @@ public class BreedingRoom : Room
     [SerializeField] private GameObject creaturePrefab;
     [SerializeField] private Transform spawnPoint;
 
-    [Header("Natural Automation")]
-    [SerializeField] private float breedingDuration = 5.0f; // Seconds parents must spend together
-    private float breedingTimer;
-    private bool isTimerRunning;
+    [Header("Love Stat Configuration")]
+    [SerializeField] private string loveStatName = "Love";
+    [SerializeField] private float loveGainRate = 15f; // Fills love quickly to overpower natural decay
 
     [Header("Mutation Configuration")]
     [Range(0f, 1f)]
@@ -19,68 +18,97 @@ public class BreedingRoom : Room
     [Header("Visual Mutation Assets")]
     [SerializeField] private Mesh rareMutatedMesh;
 
+    private bool isTimerRunning; // Kept to maintain log outputs clean
+    private bool hasSentTooManyWarning = false;
+
     private void Start()
     {
-        ResetBreedingTimer();
-        Debug.LogFormat("<color=yellow>[System Ready]</color> Natural breeding automated for <b>{0}</b>.", this.gameObject.name);
+        Debug.LogFormat("<color=yellow>[System Ready]</color> Love-driven natural breeding active for <b>{0}</b>.", this.gameObject.name);
     }
 
     private void Update()
     {
         int currentCount = GetRoomCount();
 
-        // Organic Automation Logic
+        // Condition 1: Exactly two creatures are isolated together
         if (currentCount == 2)
         {
+            hasSentTooManyWarning = false;
+
+            Creature parentA = null;
+            Creature parentB = null;
+            int index = 0;
+
+            // Safely loop out parent references from the studio's collection loop
+            foreach (Transform child in children)
+            {
+                Creature c = child.GetComponent<Creature>();
+                if (c != null)
+                {
+                    if (index == 0) parentA = c;
+                    if (index == 1) parentB = c;
+                    index++;
+                }
+            }
+
+            if (parentA == null || parentB == null) return;
+
             if (!isTimerRunning)
             {
                 isTimerRunning = true;
-                Debug.Log("<color=orange>[Timer Started]</color> Exactly 2 creatures isolated. Incubation active...");
+                Debug.Log("<color=orange>[Romance Started]</color> Exactly 2 creatures isolated. Generating Love stats...");
             }
 
-            // Tick down the automated timer
-            breedingTimer -= Time.deltaTime;
+            // 1. Actively pump up the Love stat for both parents inside their data lists
+            parentA.AddStat(loveStatName, loveGainRate * Time.deltaTime);
+            parentB.AddStat(loveStatName, loveGainRate * Time.deltaTime);
 
-            if (breedingTimer <= 0f)
+            // 2. Fetch the current love metrics to see if they're ready to hatch a baby
+            Stat loveA = parentA.GetStat(loveStatName);
+            Stat loveB = parentB.GetStat(loveStatName);
+
+            if (loveA != null && loveB != null)
             {
-                Debug.Log("<color=green>[Timer Complete]</color> Incubation successful!");
-                ExecuteAutomaticBreeding();
+                // Breeding condition: Triggers automatically when love capacity hits MaxValue!
+                if (loveA.GetTrait().Value >= loveA.GetTrait().MaxValue ||
+                    loveB.GetTrait().Value >= loveB.GetTrait().MaxValue)
+                {
+                    Debug.Log("<color=green>[Love Maxed Out]</color> Romance threshold achieved! Breeding naturally...");
+
+                    // Reset parents' love data back to baseline 0 so they don't loop instantly
+                    parentA.SubtractStat(loveStatName, loveA.GetTrait().MaxValue);
+                    parentB.SubtractStat(loveStatName, loveB.GetTrait().MaxValue);
+
+                    isTimerRunning = false;
+                    ExecuteAutomaticBreeding(parentA, parentB);
+                }
+            }
+        }
+        // Condition 2: Overcrowding capacity limits breached (Direct brief compliance!)
+        else if (currentCount > 2)
+        {
+            isTimerRunning = false;
+
+            if (!hasSentTooManyWarning)
+            {
+                hasSentTooManyWarning = true;
+                if (UIManager.Instance != null)
+                {
+                    int excess = currentCount - 2;
+                    UIManager.Instance.DisplayWarningMessage($"Breeding Room Blocked: Remove {excess} creature(s)!");
+                }
+                Debug.LogErrorFormat("<color=red>[Capacity Alert]</color> The {0} has too many items inside.", this.gameObject.name);
             }
         }
         else
         {
-            // Instantly aborts and resets if a 3rd creature enters or one leaves
-            if (isTimerRunning)
-            {
-                ResetBreedingTimer();
-                Debug.LogWarning("<color=red>[Breeding Aborted]</color> Room occupancy disrupted! Resetting genetic countdown.");
-            }
+            isTimerRunning = false;
+            hasSentTooManyWarning = false;
         }
     }
 
-    private void ResetBreedingTimer()
+    private void ExecuteAutomaticBreeding(Creature parentA, Creature parentB)
     {
-        breedingTimer = breedingDuration;
-        isTimerRunning = false;
-    }
-
-    private void ExecuteAutomaticBreeding()
-    {
-        ResetBreedingTimer();
-
-        Creature parentA = null;
-        Creature parentB = null;
-        int index = 0;
-
-        foreach (Transform child in children)
-        {
-            if (index == 0) parentA = child.GetComponent<Creature>();
-            if (index == 1) parentB = child.GetComponent<Creature>();
-            index++;
-        }
-
-        if (parentA == null || parentB == null) return;
-
         // Instantiate baby prefab object
         GameObject babyObject = Instantiate(creaturePrefab, spawnPoint.position, Quaternion.identity);
         Creature baby = babyObject.GetComponent<Creature>();
@@ -145,5 +173,6 @@ public class BreedingRoom : Room
         }
 
         baby.gameObject.name = string.Format("{0} Jr.", parentA.GetName());
+        Debug.LogFormat("<color=green>[Birth Success]</color> Added {0} safely to ecosystem.", baby.gameObject.name);
     }
 }

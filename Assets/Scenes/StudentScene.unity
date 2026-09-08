@@ -1589,13 +1589,37 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: loveGainRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: creaturePrefab
       value: 
       objectReference: {fileID: 7358285724883319401, guid: 4ab1532f5cff5224daf17e609fb1e1ab, type: 3}
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: loveTrait.name
+      value: Love
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: loveTrait.value
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: rareMutatedMesh
       value: 
       objectReference: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: loveTrait.maxValue
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: children.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: loveTrait.description
+      value: Love.
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1989,6 +2013,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1895535997}
     m_Modifications:
+    - target: {fileID: -1184975927593508889, guid: b881671a2a435a042a696a703e330198, type: 3}
+      propertyPath: trait.value
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: -1184975927593508889, guid: b881671a2a435a042a696a703e330198, type: 3}
+      propertyPath: trait.maxValue
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 7321145722671462069, guid: b881671a2a435a042a696a703e330198, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.4400005
@@ -2196,6 +2228,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Creature_Trotters
       objectReference: {fileID: 0}
+    - target: {fileID: 7339042744834414123, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
+      propertyPath: trait.value
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7339042744834414123, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
+      propertyPath: trait.maxValue
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8396032520211502379, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2
@@ -2292,6 +2332,14 @@ PrefabInstance:
     - target: {fileID: 7903268960507045615, guid: 1a2c7cf019ce5f646bfb9c517bb3a3db, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8509726096038267754, guid: 1a2c7cf019ce5f646bfb9c517bb3a3db, type: 3}
+      propertyPath: trait.value
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8509726096038267754, guid: 1a2c7cf019ce5f646bfb9c517bb3a3db, type: 3}
+      propertyPath: trait.maxValue
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

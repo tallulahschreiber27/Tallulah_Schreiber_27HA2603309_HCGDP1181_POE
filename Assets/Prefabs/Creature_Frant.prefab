@@ -1661,6 +1661,7 @@ GameObject:
   - component: {fileID: 2776719130300417930}
   - component: {fileID: 8004910018429386878}
   - component: {fileID: 1007828043629721675}
+  - component: {fileID: -1184975927593508889}
   m_Layer: 6
   m_Name: Creature_Frant
   m_TagString: Untagged
@@ -1918,6 +1919,25 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-1184975927593508889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960830357740165248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64abf37f8cb7daa478455ecefad63ab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trait:
+    name: Love
+    value: 100
+    maxValue: 100
+    description: Your cryptid feels lonely.
+  decayRate: 1
+  warningThreshold: 20
 --- !u!1 &8166726886989324581
 GameObject:
   m_ObjectHideFlags: 0
