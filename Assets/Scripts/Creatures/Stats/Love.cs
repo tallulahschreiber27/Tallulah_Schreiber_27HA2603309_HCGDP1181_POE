@@ -13,9 +13,6 @@ public class Love : Stat, ITick
     {
     }
 
-    /// <summary>
-    /// Automatically executed every frame by the studio's Creature.cs Update loop
-    /// </summary>
     public void Tick()
     {
         // Love naturally decays slowly over time if creatures are ignored
@@ -28,9 +25,6 @@ public class Love : Stat, ITick
         }
     }
 
-    /// <summary>
-    /// Checks if the love metric has dropped below the warning threshold
-    /// </summary>
     public bool CheckThreshold()
     {
         if (trait.Value < warningThreshold)
@@ -40,18 +34,12 @@ public class Love : Stat, ITick
         return false;
     }
 
-    /// <summary>
-    /// Triggers a temporary delay block for the notification system
-    /// </summary>
     public void SetWarningDelay()
     {
         delayWarning = true;
         StartCoroutine(DelayWarningRoutine());
     }
 
-    /// <summary>
-    /// Returns true if a notification alert routine is currently pending execution delays
-    /// </summary>
     public bool PendingWarning()
     {
         return delayWarning;

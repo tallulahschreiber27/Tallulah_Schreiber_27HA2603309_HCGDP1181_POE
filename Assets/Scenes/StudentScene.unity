@@ -1590,7 +1590,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: loveGainRate
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: creaturePrefab
@@ -2019,7 +2019,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -1184975927593508889, guid: b881671a2a435a042a696a703e330198, type: 3}
       propertyPath: trait.maxValue
-      value: 10
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7321145722671462069, guid: b881671a2a435a042a696a703e330198, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2234,7 +2234,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7339042744834414123, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
       propertyPath: trait.maxValue
-      value: 10
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 8396032520211502379, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2339,7 +2339,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8509726096038267754, guid: 1a2c7cf019ce5f646bfb9c517bb3a3db, type: 3}
       propertyPath: trait.maxValue
-      value: 10
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

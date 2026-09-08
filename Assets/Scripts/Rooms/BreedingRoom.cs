@@ -8,7 +8,11 @@ public class BreedingRoom : Room
 
     [Header("Love Stat Configuration")]
     [SerializeField] private string loveStatName = "Love";
-    [SerializeField] private float loveGainRate = 15f; // Fills love quickly to overpower natural decay
+    [SerializeField] private float loveGainRate = 15f; // Fills love smoothly over time
+
+    [Header("Pacing & Balance")]
+    [SerializeField] private float birthCooldownDuration = 10f; // Seconds parents must wait before breeding again
+    private float cooldownTimer = 0f;
 
     [Header("Mutation Configuration")]
     [Range(0f, 1f)]
@@ -18,7 +22,7 @@ public class BreedingRoom : Room
     [Header("Visual Mutation Assets")]
     [SerializeField] private Mesh rareMutatedMesh;
 
-    private bool isTimerRunning; // Kept to maintain log outputs clean
+    private bool isTimerRunning;
     private bool hasSentTooManyWarning = false;
 
     private void Start()
@@ -28,6 +32,13 @@ public class BreedingRoom : Room
 
     private void Update()
     {
+        // 1. Handle our recovery cooldown ticking mechanism if it is active [10]
+        if (cooldownTimer > 0f)
+        {
+            cooldownTimer -= Time.deltaTime;
+            return; // Completely freezes love generation while the cooldown is active!
+        }
+
         int currentCount = GetRoomCount();
 
         // Condition 1: Exactly two creatures are isolated together
@@ -39,7 +50,6 @@ public class BreedingRoom : Room
             Creature parentB = null;
             int index = 0;
 
-            // Safely loop out parent references from the studio's collection loop
             foreach (Transform child in children)
             {
                 Creature c = child.GetComponent<Creature>();
@@ -59,32 +69,37 @@ public class BreedingRoom : Room
                 Debug.Log("<color=orange>[Romance Started]</color> Exactly 2 creatures isolated. Generating Love stats...");
             }
 
-            // 1. Actively pump up the Love stat for both parents inside their data lists
+            // Progress Love values over time for both parents
             parentA.AddStat(loveStatName, loveGainRate * Time.deltaTime);
             parentB.AddStat(loveStatName, loveGainRate * Time.deltaTime);
 
-            // 2. Fetch the current love metrics to see if they're ready to hatch a baby
+            // Fetch current live runtime stats
             Stat loveA = parentA.GetStat(loveStatName);
             Stat loveB = parentB.GetStat(loveStatName);
 
             if (loveA != null && loveB != null)
             {
-                // Breeding condition: Triggers automatically when love capacity hits MaxValue!
-                if (loveA.GetTrait().Value >= loveA.GetTrait().MaxValue ||
-                    loveB.GetTrait().Value >= loveB.GetTrait().MaxValue)
+                float currentLoveA = loveA.GetTrait().Value;
+                float maxLoveLimit = loveA.GetTrait().MaxValue;
+
+                if (currentLoveA >= maxLoveLimit && maxLoveLimit > 0)
                 {
                     Debug.Log("<color=green>[Love Maxed Out]</color> Romance threshold achieved! Breeding naturally...");
 
-                    // Reset parents' love data back to baseline 0 so they don't loop instantly
-                    parentA.SubtractStat(loveStatName, loveA.GetTrait().MaxValue);
-                    parentB.SubtractStat(loveStatName, loveB.GetTrait().MaxValue);
+                    // Reset love metrics fully back to 0
+                    loveA.GetTrait().Value = 0f;
+                    loveB.GetTrait().Value = 0f;
 
                     isTimerRunning = false;
+
+                    //  THE LOOP FIX: Activate the cooldown timer immediately [10]
+                    cooldownTimer = birthCooldownDuration;
+                    Debug.LogFormat("<color=yellow>[Cooldown Active]</color> Parents are resting. Love generation paused for {0} seconds.", birthCooldownDuration);
+
                     ExecuteAutomaticBreeding(parentA, parentB);
                 }
             }
         }
-        // Condition 2: Overcrowding capacity limits breached (Direct brief compliance!)
         else if (currentCount > 2)
         {
             isTimerRunning = false;
@@ -97,7 +112,6 @@ public class BreedingRoom : Room
                     int excess = currentCount - 2;
                     UIManager.Instance.DisplayWarningMessage($"Breeding Room Blocked: Remove {excess} creature(s)!");
                 }
-                Debug.LogErrorFormat("<color=red>[Capacity Alert]</color> The {0} has too many items inside.", this.gameObject.name);
             }
         }
         else
@@ -109,7 +123,6 @@ public class BreedingRoom : Room
 
     private void ExecuteAutomaticBreeding(Creature parentA, Creature parentB)
     {
-        // Instantiate baby prefab object
         GameObject babyObject = Instantiate(creaturePrefab, spawnPoint.position, Quaternion.identity);
         Creature baby = babyObject.GetComponent<Creature>();
 
