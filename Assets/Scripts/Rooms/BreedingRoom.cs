@@ -3,15 +3,14 @@ using UnityEngine;
 public class BreedingRoom : Room
 {
     [Header("Breeding Settings")]
-    [SerializeField] private GameObject creaturePrefab;
     [SerializeField] private Transform spawnPoint;
 
     [Header("Love Stat Configuration")]
     [SerializeField] private string loveStatName = "Love";
-    [SerializeField] private float loveGainRate = 15f; // Fills love smoothly over time
+    [SerializeField] private float loveGainRate = 15f;
 
     [Header("Pacing & Balance")]
-    [SerializeField] private float birthCooldownDuration = 10f; // Seconds parents must wait before breeding again
+    [SerializeField] private float birthCooldownDuration = 10f;
     private float cooldownTimer = 0f;
 
     [Header("Mutation Configuration")]
@@ -27,21 +26,19 @@ public class BreedingRoom : Room
 
     private void Start()
     {
-        Debug.LogFormat("<color=yellow>[System Ready]</color> Love-driven natural breeding active for <b>{0}</b>.", this.gameObject.name);
+        Debug.Log("[System Ready] Love-driven natural breeding active.");
     }
 
     private void Update()
     {
-        // 1. Handle our recovery cooldown ticking mechanism if it is active [10]
         if (cooldownTimer > 0f)
         {
             cooldownTimer -= Time.deltaTime;
-            return; // Completely freezes love generation while the cooldown is active!
+            return;
         }
 
         int currentCount = GetRoomCount();
 
-        // Condition 1: Exactly two creatures are isolated together
         if (currentCount == 2)
         {
             hasSentTooManyWarning = false;
@@ -66,14 +63,12 @@ public class BreedingRoom : Room
             if (!isTimerRunning)
             {
                 isTimerRunning = true;
-                Debug.Log("<color=orange>[Romance Started]</color> Exactly 2 creatures isolated. Generating Love stats...");
+                Debug.Log("[Romance Started] Exactly 2 creatures isolated. Generating Love stats...");
             }
 
-            // Progress Love values over time for both parents
             parentA.AddStat(loveStatName, loveGainRate * Time.deltaTime);
             parentB.AddStat(loveStatName, loveGainRate * Time.deltaTime);
 
-            // Fetch current live runtime stats
             Stat loveA = parentA.GetStat(loveStatName);
             Stat loveB = parentB.GetStat(loveStatName);
 
@@ -84,17 +79,14 @@ public class BreedingRoom : Room
 
                 if (currentLoveA >= maxLoveLimit && maxLoveLimit > 0)
                 {
-                    Debug.Log("<color=green>[Love Maxed Out]</color> Romance threshold achieved! Breeding naturally...");
+                    Debug.Log("[Love Maxed Out] Romance threshold achieved! Breeding naturally...");
 
-                    // Reset love metrics fully back to 0
                     loveA.GetTrait().Value = 0f;
                     loveB.GetTrait().Value = 0f;
 
                     isTimerRunning = false;
-
-                    //  THE LOOP FIX: Activate the cooldown timer immediately [10]
                     cooldownTimer = birthCooldownDuration;
-                    Debug.LogFormat("<color=yellow>[Cooldown Active]</color> Parents are resting. Love generation paused for {0} seconds.", birthCooldownDuration);
+                    Debug.Log("[Cooldown Active] Parents are resting.");
 
                     ExecuteAutomaticBreeding(parentA, parentB);
                 }
@@ -110,7 +102,7 @@ public class BreedingRoom : Room
                 if (UIManager.Instance != null)
                 {
                     int excess = currentCount - 2;
-                    UIManager.Instance.DisplayWarningMessage($"Breeding Room Blocked: Remove {excess} creature(s)!");
+                    UIManager.Instance.DisplayWarningMessage("Breeding Room Blocked: Remove excess creature(s)!");
                 }
             }
         }
@@ -123,15 +115,23 @@ public class BreedingRoom : Room
 
     private void ExecuteAutomaticBreeding(Creature parentA, Creature parentB)
     {
-        GameObject babyObject = Instantiate(creaturePrefab, spawnPoint.position, Quaternion.identity);
+        // Cloning the parent game object
+        GameObject babyObject = Instantiate(parentA.gameObject, spawnPoint.position, Quaternion.identity);
         Creature baby = babyObject.GetComponent<Creature>();
 
         if (baby == null) return;
 
-        // Genetic Inheritance Loop
+        // Stat inheritance
         foreach (Stat babyStat in baby.GetStats())
         {
             string traitName = babyStat.GetTrait().Name;
+
+            if (traitName == loveStatName)
+            {
+                babyStat.GetTrait().Value = 15f;
+                continue;
+            }
+
             Stat fatherStat = parentA.GetStat(traitName);
             Stat motherStat = parentB.GetStat(traitName);
 
@@ -153,7 +153,7 @@ public class BreedingRoom : Room
             }
         }
 
-        // Apply physical Scale layout modifier
+        // Apply scale modifier dynamically matching performance speed stat allocations
         Stat visualTrait = baby.GetStat("Speed");
         if (visualTrait != null)
         {
@@ -162,30 +162,45 @@ public class BreedingRoom : Room
             baby.transform.localScale = new Vector3(calculatedScale, calculatedScale, calculatedScale);
         }
 
-        // Apply visual Color or Mesh mutations
-        if (Random.value < mutationChance)
-        {
-            Renderer babyRenderer = baby.GetComponentInChildren<Renderer>();
-            if (babyRenderer != null)
-            {
-                babyRenderer.material.color = new Color(Random.value, Random.value, Random.value);
-            }
+        // Genetic identification for new mesh merge
+        CreatureSpecies typeA = parentA.GetSpeciesType();
+        CreatureSpecies typeB = parentB.GetSpeciesType();
 
-            if (rareMutatedMesh != null)
-            {
-                MeshFilter babyMeshFilter = baby.GetComponentInChildren<MeshFilter>();
-                if (babyMeshFilter != null) babyMeshFilter.sharedMesh = rareMutatedMesh;
-            }
+        baby.gameObject.name = string.Format("{0} Jr.", parentA.GetName());
+
+        // Physical mesh fusion
+        Renderer babyRenderer = baby.GetComponentInChildren<Renderer>();
+        MeshFilter babyMeshFilter = baby.GetComponentInChildren<MeshFilter>();
+
+        MeshFilter fatherMeshFilter = parentA.GetComponentInChildren<MeshFilter>();
+        MeshFilter motherMeshFilter = parentB.GetComponentInChildren<MeshFilter>();
+
+        // Copy parent mesh structures cleanly using a 50/50 genetic coin flip layout
+        if (babyMeshFilter != null && fatherMeshFilter != null && motherMeshFilter != null)
+        {
+            babyMeshFilter.sharedMesh = (Random.value > 0.5f) ? fatherMeshFilter.sharedMesh : motherMeshFilter.sharedMesh;
         }
 
-        // Sync runtime components
+        // Creates a random colour
+        if (babyRenderer != null)
+        {
+            babyRenderer.material.color = new Color(Random.value, Random.value, Random.value);
+        }
+
+        // Absolute mutation fallback override for structural models
+        if (Random.value < mutationChance && rareMutatedMesh != null && babyMeshFilter != null)
+        {
+            babyMeshFilter.sharedMesh = rareMutatedMesh;
+        }
+
+        // Sync local NavMesh Agent parameters
         UnityEngine.AI.NavMeshAgent babyAgent = baby.GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (babyAgent != null && baby.GetStat("Speed") != null)
         {
             babyAgent.speed = baby.GetStat("Speed").GetTrait().Value;
         }
 
-        baby.gameObject.name = string.Format("{0} Jr.", parentA.GetName());
-        Debug.LogFormat("<color=green>[Birth Success]</color> Added {0} safely to ecosystem.", baby.gameObject.name);
+        Debug.LogFormat("[Lineage Verified] Parents: {0} ({1}) + {2} ({3}) -> Offspring: {4}",
+            parentA.GetName(), typeA, parentB.GetName(), typeB, baby.gameObject.name);
     }
 }

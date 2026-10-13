@@ -3,30 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum CreatureSpecies { MonsterA, MonsterB, MonsterC }
+
 public class Creature : MonoBehaviour
 {
+    [Header("Identity Details")]
     [SerializeField] private string creatureName;
+    [SerializeField] private CreatureSpecies speciesType;
+
+    [Header("Data Architecture")]
     [SerializeField] private List<Stat> stats;
     private NavMeshAgent agent;
 
     private void Awake()
     {
-        // Initialize the tracking list if it's completely empty or unassigned
-        if (stats == null)
-        {
-            stats = new List<Stat>();
-        }
+        // Feedback fix: Explicitly clear out inherited parent list data upon instantiation
+        // This ensures two of the same stat (like Love) never get registered to a single baby
+        stats = new List<Stat>();
 
-        // Gather all individual Stat scripts attached to this creature (Hunger, Health, Love, etc.)
+        // Gather only the individual Stat components attached directly to this specific instance
         Stat[] attachedComponents = GetComponents<Stat>();
 
-        // Safely register them into the master data tracking list array automatically on launch
         foreach (Stat dynamicStat in attachedComponents)
         {
             if (!stats.Contains(dynamicStat))
             {
                 stats.Add(dynamicStat);
-                Debug.Log($"<color=cyan>[DNA Assembly]</color> Automatically registered stat profile: <b>{dynamicStat.GetTrait().Name}</b> onto creature tracker list.");
+                Debug.Log("[DNA Assembly] Registered unique local stat profile: " + dynamicStat.GetTrait().Name);
             }
         }
     }
@@ -35,7 +38,6 @@ public class Creature : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
 
-        // Grab speed stat safely
         Stat speedStat = GetStat("Speed");
         if (speedStat != null && agent != null)
         {
@@ -65,6 +67,11 @@ public class Creature : MonoBehaviour
     public string GetName()
     {
         return creatureName;
+    }
+
+    public CreatureSpecies GetSpeciesType()
+    {
+        return speciesType;
     }
 
     public Stat GetStat(string statName)
