@@ -290,26 +290,52 @@ public class BreedingRoom : Room
         {
             babyMeshFilter.sharedMesh = rareMutatedMesh;
         }
-
-        // Color inheritance (blends parent colors with a subtle mutation offset instead of full randomness)
+        // Color inheritance + visible generational color shift
         Renderer babyRenderer = baby.GetComponentInChildren<Renderer>();
         Renderer rendererA = parentA.GetComponentInChildren<Renderer>();
         Renderer rendererB = parentB.GetComponentInChildren<Renderer>();
 
         if (babyRenderer != null && rendererA != null && rendererB != null)
         {
-            Color blendedColor = Color.Lerp(rendererA.material.color, rendererB.material.color, Random.Range(0.25f, 0.75f));
+            Color colorA = rendererA.material.color;
+            Color colorB = rendererB.material.color;
 
-            if (Random.value < mutationChance)
+            // If both parents are still default white, generate a distinct inherited hue;
+            // otherwise blend the parents' colors and apply a subtle generational tint shift
+            if (colorA == Color.white && colorB == Color.white)
             {
-                blendedColor.r = Mathf.Clamp01(blendedColor.r + Random.Range(-0.15f, 0.15f));
-                blendedColor.g = Mathf.Clamp01(blendedColor.g + Random.Range(-0.15f, 0.15f));
-                blendedColor.b = Mathf.Clamp01(blendedColor.b + Random.Range(-0.15f, 0.15f));
+                babyRenderer.material.color = Color.HSVToRGB(Random.value, Random.Range(0.45f, 0.85f), Random.Range(0.75f, 1.0f));
             }
-
-            babyRenderer.material.color = blendedColor;
+            else
+            {
+                Color blendedColor = Color.Lerp(colorA, colorB, Random.Range(0.25f, 0.75f));
+                float shift = (Random.value < mutationChance) ? 0.35f : 0.15f;
+                blendedColor.r = Mathf.Clamp01(blendedColor.r + Random.Range(-shift, shift));
+                blendedColor.g = Mathf.Clamp01(blendedColor.g + Random.Range(-shift, shift));
+                blendedColor.b = Mathf.Clamp01(blendedColor.b + Random.Range(-shift, shift));
+                babyRenderer.material.color = blendedColor;
+            }
         }
     }
+
+    private Color GetRendererColor(Renderer targetRenderer)
+    {
+        if (targetRenderer.material.HasProperty("_BaseColor"))
+        {
+            return targetRenderer.material.GetColor("_BaseColor");
+        }
+        return targetRenderer.material.color;
+    }
+
+    private void SetRendererColor(Renderer targetRenderer, Color newColor)
+    {
+        if (targetRenderer.material.HasProperty("_BaseColor"))
+        {
+            targetRenderer.material.SetColor("_BaseColor", newColor);
+        }
+        targetRenderer.material.color = newColor;
+    }
+
 
     private Vector3 GetValidNavMeshPosition()
     {
