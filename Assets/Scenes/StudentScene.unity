@@ -1536,67 +1536,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1805458735772812119, guid: 27d5c6012de62b249afc45e1545ae4bc, type: 3}
   m_PrefabInstance: {fileID: 3930321533619959702}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1914604846
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -29.54
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.18
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071067
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -7511558181221131132, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 841837f8d0df60f439fb5eb2d5c94be9, type: 2}
-    - target: {fileID: 919132149155446097, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
-      propertyPath: m_Name
-      value: Nurseryroom
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: b6a5337f91510ac4482f89699d533d08, type: 3}
 --- !u!1001 &1968855583
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1650,6 +1589,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: nurseryRoom
+      value: 
+      objectReference: {fileID: 1999814655}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: loveGainRate
       value: 10
       objectReference: {fileID: 0}
@@ -1686,6 +1629,96 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+--- !u!1001 &1999814653
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -29.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.02625084
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 519660884945848443, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 900126733723538113, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: m_Name
+      value: Nurseryroom
+      objectReference: {fileID: 0}
+    - target: {fileID: 2098401555713042430, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 841837f8d0df60f439fb5eb2d5c94be9, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 900126733723538113, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1999814655}
+  m_SourcePrefab: {fileID: 100100000, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+--- !u!1 &1999814654 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 900126733723538113, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+  m_PrefabInstance: {fileID: 1999814653}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1999814655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999814654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0e0539ce98118446b90243537ca942a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomName: Nursery Room
+  movePoint: {fileID: 1999814656}
+  children: []
+  creatureCap: 0
+--- !u!4 &1999814656 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6794225278977323726, guid: 5c6c3028455bd7641beb223602302948, type: 3}
+  m_PrefabInstance: {fileID: 1999814653}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &502528279801100042
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2501,4 +2534,4 @@ SceneRoots:
   - {fileID: 1338224551}
   - {fileID: 206003526}
   - {fileID: 1968855583}
-  - {fileID: 1914604846}
+  - {fileID: 1999814653}
