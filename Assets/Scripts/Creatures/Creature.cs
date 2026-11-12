@@ -17,8 +17,8 @@ public class Creature : MonoBehaviour
 
     private void Awake()
     {
-        // Feedback fix: Explicitly clear out inherited parent list data upon instantiation
-        // This ensures two of the same stat (like Love) never get registered to a single baby
+        // Explicitly clear out inherited parent list data upon instantiation
+        // This ensures duplicate stat references never get registered to a single baby
         stats = new List<Stat>();
 
         // Gather only the individual Stat components attached directly to this specific instance
@@ -26,7 +26,7 @@ public class Creature : MonoBehaviour
 
         foreach (Stat dynamicStat in attachedComponents)
         {
-            if (!stats.Contains(dynamicStat))
+            if (dynamicStat != null && dynamicStat.GetTrait() != null && !stats.Contains(dynamicStat))
             {
                 stats.Add(dynamicStat);
                 Debug.Log("[DNA Assembly] Registered unique local stat profile: " + dynamicStat.GetTrait().Name);
@@ -36,13 +36,7 @@ public class Creature : MonoBehaviour
 
     private void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-
-        Stat speedStat = GetStat("Speed");
-        if (speedStat != null && agent != null)
-        {
-            agent.speed = speedStat.GetTrait().Value;
-        }
+        RefreshMovementSpeed();
     }
 
     void LateUpdate()
@@ -54,7 +48,7 @@ public class Creature : MonoBehaviour
     {
         foreach (Stat stat in stats)
         {
-            if (stat is ITick tick)
+            if (stat is ITick tick && stat.GetTrait() != null)
             {
                 if (stat.GetTrait().Value >= 0)
                 {
@@ -69,6 +63,11 @@ public class Creature : MonoBehaviour
         return creatureName;
     }
 
+    public void SetName(string newName)
+    {
+        creatureName = newName;
+    }
+
     public CreatureSpecies GetSpeciesType()
     {
         return speciesType;
@@ -76,13 +75,13 @@ public class Creature : MonoBehaviour
 
     public Stat GetStat(string statName)
     {
-        return stats.Find(stat => stat.GetTrait().Name == statName);
+        return stats.Find(stat => stat != null && stat.GetTrait() != null && stat.GetTrait().Name == statName);
     }
 
     public void SubtractStat(string statName, float value)
     {
         Stat stat = GetStat(statName);
-        if (stat != null)
+        if (stat != null && stat.GetTrait() != null)
         {
             stat.GetTrait().Value -= value;
 
@@ -96,7 +95,7 @@ public class Creature : MonoBehaviour
     public void AddStat(string statName, float value)
     {
         Stat stat = GetStat(statName);
-        if (stat != null)
+        if (stat != null && stat.GetTrait() != null)
         {
             stat.GetTrait().Value += value;
 
@@ -110,5 +109,37 @@ public class Creature : MonoBehaviour
     public List<Stat> GetStats()
     {
         return stats;
+    }
+
+    public void RegisterStat(Stat newStat)
+    {
+        if (newStat != null && !stats.Contains(newStat))
+        {
+            stats.Add(newStat);
+            Debug.Log("[DNA Inheritance] Added new inherited trait to offspring: " + newStat.GetTrait().Name);
+        }
+    }
+
+    public void RemoveStat(Stat statToRemove)
+    {
+        if (statToRemove != null && stats.Contains(statToRemove))
+        {
+            stats.Remove(statToRemove);
+            Destroy(statToRemove);
+        }
+    }
+
+    public void RefreshMovementSpeed()
+    {
+        if (agent == null)
+        {
+            agent = GetComponent<NavMeshAgent>();
+        }
+
+        Stat speedStat = GetStat("Speed");
+        if (speedStat != null && speedStat.GetTrait() != null && agent != null)
+        {
+            agent.speed = speedStat.GetTrait().Value;
+        }
     }
 }

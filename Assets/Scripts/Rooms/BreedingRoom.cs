@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class BreedingRoom : Room
 {
-    [Header("Breeding Settings")]
+    [Header("Breeding & Placement Settings")]
     [SerializeField] private Transform spawnPoint;
+    [Tooltip("Assign another room (e.g., Main Room / Nursery) so the baby spawns inside a valid room on the NavMesh without overcrowding the Breeding Room.")]
+    [SerializeField] private Room nurseryRoom;
 
     [Header("Love Stat Configuration")]
     [SerializeField] private string loveStatName = "Love";
@@ -13,10 +17,12 @@ public class BreedingRoom : Room
     [SerializeField] private float birthCooldownDuration = 10f;
     private float cooldownTimer = 0f;
 
-    [Header("Mutation Configuration")]
+    [Header("Inheritance & Mutation Configuration")]
     [Range(0f, 1f)]
-    [SerializeField] private float mutationChance = 0.10f;
-    [SerializeField] private float mutationIntensity = 0.25f;
+    [SerializeField] private float uniqueTraitInheritChance = 0.50f;
+    [Range(0f, 1f)]
+    [SerializeField] private float mutationChance = 0.15f;
+    [SerializeField] private float mutationIntensity = 0.15f;
 
     [Header("Visual Mutation Assets")]
     [SerializeField] private Mesh rareMutatedMesh;
@@ -24,8 +30,9 @@ public class BreedingRoom : Room
     private bool isTimerRunning;
     private bool hasSentTooManyWarning = false;
 
-    private void Start()
+    public override void Start()
     {
+        base.Start();
         Debug.Log("[System Ready] Love-driven natural breeding active.");
     }
 
@@ -43,22 +50,11 @@ public class BreedingRoom : Room
         {
             hasSentTooManyWarning = false;
 
-            Creature parentA = null;
-            Creature parentB = null;
-            int index = 0;
-
-            foreach (Transform child in children)
-            {
-                Creature c = child.GetComponent<Creature>();
-                if (c != null)
-                {
-                    if (index == 0) parentA = c;
-                    if (index == 1) parentB = c;
-                    index++;
-                }
-            }
+            Creature parentA = children[0].GetComponent<Creature>();
+            Creature parentB = children[1].GetComponent<Creature>();
 
             if (parentA == null || parentB == null) return;
+
 
             if (!isTimerRunning)
             {
@@ -72,7 +68,7 @@ public class BreedingRoom : Room
             Stat loveA = parentA.GetStat(loveStatName);
             Stat loveB = parentB.GetStat(loveStatName);
 
-            if (loveA != null && loveB != null)
+            if (loveA != null && loveB != null && loveA.GetTrait() != null && loveB.GetTrait() != null)
             {
                 float currentLoveA = loveA.GetTrait().Value;
                 float maxLoveLimit = loveA.GetTrait().MaxValue;
@@ -101,7 +97,6 @@ public class BreedingRoom : Room
                 hasSentTooManyWarning = true;
                 if (UIManager.Instance != null)
                 {
-                    int excess = currentCount - 2;
                     UIManager.Instance.DisplayWarningMessage("Breeding Room Blocked: Remove excess creature(s)!");
                 }
             }
@@ -115,92 +110,236 @@ public class BreedingRoom : Room
 
     private void ExecuteAutomaticBreeding(Creature parentA, Creature parentB)
     {
-        // Cloning the parent game object
-        GameObject babyObject = Instantiate(parentA.gameObject, spawnPoint.position, Quaternion.identity);
+        Vector3 targetSpawnPos = GetValidNavMeshPosition();
+
+        GameObject babyObject = Instantiate(parentA.gameObject, targetSpawnPos, Quaternion.identity);
         Creature baby = babyObject.GetComponent<Creature>();
 
         if (baby == null) return;
 
-        // Stat inheritance
-        foreach (Stat babyStat in baby.GetStats())
-        {
-            string traitName = babyStat.GetTrait().Name;
+        string babyName = string.Format("{0}-{1} Jr.", parentA.GetName(), parentB.GetName());
+        baby.gameObject.name = babyName;
+        baby.SetName(babyName);
 
+        // 1. Dynamically inherit and mutate Trait/Stat components from BOTH parents
+        InheritTraitsFromBothParents(parentA, parentB, baby);
+
+        // 2. Apply visual inheritance & subtle generational mutation
+        ApplyVisualInheritanceAndMutation(parentA, parentB, baby);
+
+        // 3. Place baby inside a valid Room on the NavMesh to prevent NullReferenceExceptions
+        PlaceBabyInValidRoom(baby, targetSpawnPos);
+
+        Debug.LogFormat("[Lineage Verified] Parents: {0} ({1}) + {2} ({3}) -> Offspring: {4} | Total Traits: {5}",
+            parentA.GetName(), parentA.GetSpeciesType(),
+            parentB.GetName(), parentB.GetSpeciesType(),
+            baby.gameObject.name, baby.GetStats().Count);
+    }
+
+    private void InheritTraitsFromBothParents(Creature parentA, Creature parentB, Creature baby)
+    {
+        List<Stat> statsA = parentA.GetStats();
+        List<Stat> statsB = parentB.GetStats();
+
+        // Collect all unique trait names from BOTH parents
+        HashSet<string> allTraitNames = new HashSet<string>();
+        foreach (Stat s in statsA)
+        {
+            if (s != null && s.GetTrait() != null)
+            {
+                allTraitNames.Add(s.GetTrait().Name);
+            }
+        }
+        foreach (Stat s in statsB)
+        {
+            if (s != null && s.GetTrait() != null)
+            {
+                allTraitNames.Add(s.GetTrait().Name);
+            }
+        }
+
+        foreach (string traitName in allTraitNames)
+        {
+            Stat statA = parentA.GetStat(traitName);
+            Stat statB = parentB.GetStat(traitName);
+            Stat babyStat = baby.GetStat(traitName);
+
+            // Reset Love to a baseline starting value on newborns
             if (traitName == loveStatName)
             {
-                babyStat.GetTrait().Value = 15f;
+                if (babyStat != null && babyStat.GetTrait() != null)
+                {
+                    babyStat.GetTrait().Value = 15f;
+                }
                 continue;
             }
 
-            Stat fatherStat = parentA.GetStat(traitName);
-            Stat motherStat = parentB.GetStat(traitName);
+            bool hasParentA = (statA != null && statA.GetTrait() != null);
+            bool hasParentB = (statB != null && statB.GetTrait() != null);
 
-            if (fatherStat != null && motherStat != null)
+            if (hasParentA && hasParentB)
             {
-                float fatherVal = fatherStat.GetTrait().Value;
-                float motherVal = motherStat.GetTrait().Value;
-
-                float inheritedValue = Random.Range(Mathf.Min(fatherVal, motherVal), Mathf.Max(fatherVal, motherVal));
-
-                if (Random.value < mutationChance)
+                // SHARED TRAIT: Both parents have this trait -> always inherited and blended
+                Trait blendedTrait = CreateInheritedTrait(statA.GetTrait(), statB.GetTrait());
+                if (babyStat != null)
                 {
-                    float mutationOffset = Random.Range(-mutationIntensity, mutationIntensity) * inheritedValue;
-                    inheritedValue += mutationOffset;
+                    babyStat.InitializeTrait(blendedTrait);
                 }
-
-                inheritedValue = Mathf.Clamp(inheritedValue, 0, babyStat.GetTrait().MaxValue);
-                babyStat.GetTrait().Value = inheritedValue;
+            }
+            else if (hasParentA && !hasParentB)
+            {
+                // UNIQUE TO PARENT A: Discerning selection decides if baby keeps it
+                if (Random.value <= uniqueTraitInheritChance)
+                {
+                    Trait inheritedTrait = CreateSingleParentTrait(statA.GetTrait());
+                    if (babyStat != null)
+                    {
+                        babyStat.InitializeTrait(inheritedTrait);
+                    }
+                }
+                else if (babyStat != null)
+                {
+                    baby.RemoveStat(babyStat);
+                }
+            }
+            else if (!hasParentA && hasParentB)
+            {
+                // UNIQUE TO PARENT B: Discerning selection decides if baby gains Parent B's Stat component
+                if (Random.value <= uniqueTraitInheritChance)
+                {
+                    Stat addedStat = (Stat)baby.gameObject.AddComponent(statB.GetType());
+                    Trait inheritedTrait = CreateSingleParentTrait(statB.GetTrait());
+                    addedStat.InitializeTrait(inheritedTrait);
+                    baby.RegisterStat(addedStat);
+                }
             }
         }
 
-        // Apply scale modifier dynamically matching performance speed stat allocations
-        Stat visualTrait = baby.GetStat("Speed");
-        if (visualTrait != null)
+        baby.RefreshMovementSpeed();
+    }
+
+    private Trait CreateInheritedTrait(Trait traitA, Trait traitB)
+    {
+        float minVal = Mathf.Min(traitA.Value, traitB.Value);
+        float maxVal = Mathf.Max(traitA.Value, traitB.Value);
+        float inheritedValue = Random.Range(minVal, maxVal);
+
+        float blendedMax = (traitA.MaxValue + traitB.MaxValue) * 0.5f;
+
+        // Subtle generational mutation
+        if (Random.value < mutationChance)
         {
-            float visualModifier = visualTrait.GetTrait().Value / visualTrait.GetTrait().MaxValue;
-            float calculatedScale = Mathf.Lerp(0.5f, 2.0f, visualModifier);
-            baby.transform.localScale = new Vector3(calculatedScale, calculatedScale, calculatedScale);
+            float mutationFactor = 1f + Random.Range(-mutationIntensity, mutationIntensity);
+            blendedMax = Mathf.Max(1f, blendedMax * mutationFactor);
+            inheritedValue *= mutationFactor;
+            Debug.LogFormat("[Mutation Occurred] Shared trait '{0}' subtly mutated across generation!", traitA.Name);
         }
 
-        // Genetic identification for new mesh merge
-        CreatureSpecies typeA = parentA.GetSpeciesType();
-        CreatureSpecies typeB = parentB.GetSpeciesType();
+        inheritedValue = Mathf.Clamp(inheritedValue, 0f, blendedMax);
 
-        baby.gameObject.name = string.Format("{0} Jr.", parentA.GetName());
+        Trait result = new Trait(traitA.Name, blendedMax, traitA.Description);
+        result.Value = inheritedValue;
+        result.MaxValue = blendedMax;
+        return result;
+    }
 
-        // Physical mesh fusion
-        Renderer babyRenderer = baby.GetComponentInChildren<Renderer>();
+    private Trait CreateSingleParentTrait(Trait sourceTrait)
+    {
+        float inheritedMax = sourceTrait.MaxValue;
+        float inheritedValue = sourceTrait.Value;
+
+        // Subtle generational mutation
+        if (Random.value < mutationChance)
+        {
+            float mutationFactor = 1f + Random.Range(-mutationIntensity, mutationIntensity);
+            inheritedMax = Mathf.Max(1f, inheritedMax * mutationFactor);
+            inheritedValue *= mutationFactor;
+            Debug.LogFormat("[Mutation Occurred] Unique inherited trait '{0}' subtly mutated!", sourceTrait.Name);
+        }
+
+        inheritedValue = Mathf.Clamp(inheritedValue, 0f, inheritedMax);
+
+        Trait result = new Trait(sourceTrait.Name, inheritedMax, sourceTrait.Description);
+        result.Value = inheritedValue;
+        result.MaxValue = inheritedMax;
+        return result;
+    }
+
+    private void ApplyVisualInheritanceAndMutation(Creature parentA, Creature parentB, Creature baby)
+    {
+        // Scale inheritance with subtle mutation
+        float avgScale = (parentA.transform.localScale.x + parentB.transform.localScale.x) * 0.5f;
+        if (Random.value < mutationChance)
+        {
+            avgScale *= (1f + Random.Range(-mutationIntensity, mutationIntensity));
+        }
+        avgScale = Mathf.Clamp(avgScale, 0.5f, 2.0f);
+        baby.transform.localScale = new Vector3(avgScale, avgScale, avgScale);
+
+        // Mesh 50/50 inheritance from either parent + rare mutation
         MeshFilter babyMeshFilter = baby.GetComponentInChildren<MeshFilter>();
-
         MeshFilter fatherMeshFilter = parentA.GetComponentInChildren<MeshFilter>();
         MeshFilter motherMeshFilter = parentB.GetComponentInChildren<MeshFilter>();
 
-        // Copy parent mesh structures cleanly using a 50/50 genetic coin flip layout
         if (babyMeshFilter != null && fatherMeshFilter != null && motherMeshFilter != null)
         {
             babyMeshFilter.sharedMesh = (Random.value > 0.5f) ? fatherMeshFilter.sharedMesh : motherMeshFilter.sharedMesh;
         }
 
-        // Creates a random colour
-        if (babyRenderer != null)
-        {
-            babyRenderer.material.color = new Color(Random.value, Random.value, Random.value);
-        }
-
-        // Absolute mutation fallback override for structural models
         if (Random.value < mutationChance && rareMutatedMesh != null && babyMeshFilter != null)
         {
             babyMeshFilter.sharedMesh = rareMutatedMesh;
         }
 
-        // Sync local NavMesh Agent parameters
-        UnityEngine.AI.NavMeshAgent babyAgent = baby.GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (babyAgent != null && baby.GetStat("Speed") != null)
-        {
-            babyAgent.speed = baby.GetStat("Speed").GetTrait().Value;
-        }
+        // Color inheritance (blends parent colors with a subtle mutation offset instead of full randomness)
+        Renderer babyRenderer = baby.GetComponentInChildren<Renderer>();
+        Renderer rendererA = parentA.GetComponentInChildren<Renderer>();
+        Renderer rendererB = parentB.GetComponentInChildren<Renderer>();
 
-        Debug.LogFormat("[Lineage Verified] Parents: {0} ({1}) + {2} ({3}) -> Offspring: {4}",
-            parentA.GetName(), typeA, parentB.GetName(), typeB, baby.gameObject.name);
+        if (babyRenderer != null && rendererA != null && rendererB != null)
+        {
+            Color blendedColor = Color.Lerp(rendererA.material.color, rendererB.material.color, Random.Range(0.25f, 0.75f));
+
+            if (Random.value < mutationChance)
+            {
+                blendedColor.r = Mathf.Clamp01(blendedColor.r + Random.Range(-0.15f, 0.15f));
+                blendedColor.g = Mathf.Clamp01(blendedColor.g + Random.Range(-0.15f, 0.15f));
+                blendedColor.b = Mathf.Clamp01(blendedColor.b + Random.Range(-0.15f, 0.15f));
+            }
+
+            babyRenderer.material.color = blendedColor;
+        }
+    }
+
+    private Vector3 GetValidNavMeshPosition()
+    {
+        Vector3 desiredPos = transform.position;
+        if (nurseryRoom != null)
+        {
+            desiredPos = nurseryRoom.transform.position;
+        }
+        else if (spawnPoint != null)
+        {
+            desiredPos = spawnPoint.position;
+        }
+        // Snap to the nearest valid point on the baked NavMesh within 5 units
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(desiredPos, out hit, 5.0f, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+        return desiredPos;
+    }
+    private void PlaceBabyInValidRoom(Creature baby, Vector3 validNavPos)
+    {
+        Room destinationRoom = (nurseryRoom != null) ? nurseryRoom : this;
+        baby.transform.SetParent(destinationRoom.transform);
+        NavMeshAgent babyAgent = baby.GetComponent<NavMeshAgent>();
+
+        if (babyAgent != null)
+        {
+            babyAgent.Warp(validNavPos);
+            babyAgent.ResetPath();
+        }
     }
 }
