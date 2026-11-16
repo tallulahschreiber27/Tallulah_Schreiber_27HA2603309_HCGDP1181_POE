@@ -179,7 +179,7 @@ public class BreedingRoom : Room
 
             if (hasParentA && hasParentB)
             {
-                // SHARED TRAIT: Both parents have this trait -> always inherited and blended
+                // SHARED TRAIT: Both parents have this trait and are always inherited and blended
                 Trait blendedTrait = CreateInheritedTrait(statA.GetTrait(), statB.GetTrait());
                 if (babyStat != null)
                 {
