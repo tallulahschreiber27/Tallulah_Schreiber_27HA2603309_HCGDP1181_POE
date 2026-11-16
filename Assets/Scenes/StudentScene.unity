@@ -1605,6 +1605,10 @@ PrefabInstance:
       value: Love
       objectReference: {fileID: 0}
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: mutationChance
+      value: 0.34
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: loveTrait.value
       value: 14
       objectReference: {fileID: 0}
@@ -1623,6 +1627,10 @@ PrefabInstance:
     - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
       propertyPath: loveTrait.description
       value: Love.
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022165453709525939, guid: a4d88817a0927a949a34b6e596bcb29b, type: 3}
+      propertyPath: uniqueTraitInheritChance
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2373,8 +2381,35 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3196208796172837067, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
+      insertIndex: 13
+      addedObject: {fileID: 5624762920246664306}
   m_SourcePrefab: {fileID: 100100000, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
+--- !u!1 &5624762920246664305 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3196208796172837067, guid: 81f48aa87b7bba4418abf9be0141fb11, type: 3}
+  m_PrefabInstance: {fileID: 5624762920246664304}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5624762920246664306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5624762920246664305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5e5a79aa9c12954488b507cd708e433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trait:
+    name: Souls
+    value: 70
+    maxValue: 70
+    description: Your cryptid wants souls.
+  tickRate: 1
+  warningThreshold: 30
 --- !u!1001 &5689005634427515503
 PrefabInstance:
   m_ObjectHideFlags: 0
